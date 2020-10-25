@@ -12,7 +12,6 @@ pyinstaller = "*"
 pypiwin32 = "*"
 
 [packages]
-tqdm = "*"
 click = "*"
 
 [requires]

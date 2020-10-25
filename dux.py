@@ -2,7 +2,6 @@ import json
 from datetime import datetime
 
 import click
-from tqdm import tqdm
 
 cli_help_text = """
 Convert the output of the duplicacy list command to JSON.
@@ -62,29 +61,30 @@ def default_output_filename():
 def main(input, output, indent=None):
     files = {}
 
-    for line in tqdm(input.readlines()):
-        line_parts = line.strip().split(maxsplit=8)
-        # 0 = Log Date
-        # 1 = Log Time
-        # 2 = Log Level
-        # 3 = Log Type
-        # 4 = File Size
-        # 5 = Modified Date
-        # 6 = Modified Time
-        # 7 = File Hash (Blank if 0 File Size)
-        # 8 = Path inc File Name (Index 7 if File Hash is blank)
+    with click.progressbar(input.readlines()) as input_:
+        for line in input_:
+            line_parts = line.strip().split(maxsplit=8)
+            # 0 = Log Date
+            # 1 = Log Time
+            # 2 = Log Level
+            # 3 = Log Type
+            # 4 = File Size
+            # 5 = Modified Date
+            # 6 = Modified Time
+            # 7 = File Hash (Blank if 0 File Size)
+            # 8 = Path inc File Name (Index 7 if File Hash is blank)
 
-        try:
-            log_type = line_parts[3]
-            if log_type == "SNAPSHOT_FILE":
-                file_size = int(line_parts[4])
-                file_path_idx = 8 if file_size > 0 else 7
-                file_path = line_parts[file_path_idx].split("/")
-                file_name = file_path.pop(-1)
+            try:
+                log_type = line_parts[3]
+                if log_type == "SNAPSHOT_FILE":
+                    file_size = int(line_parts[4])
+                    file_path_idx = 8 if file_size > 0 else 7
+                    file_path = line_parts[file_path_idx].split("/")
+                    file_name = file_path.pop(-1)
 
-                add_file(files, file_path, file_name, file_size)
-        except IndexError:
-            pass  # Line not in the correct format
+                    add_file(files, file_path, file_name, file_size)
+            except IndexError:
+                pass  # Line not in the correct format
 
     output.write(json.dumps(files, indent=indent))
 

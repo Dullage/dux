@@ -9,7 +9,7 @@ rope = "*"
 isort = "*"
 flake8 = "*"
 pyinstaller = "*"
-pypiwin32 = "*"
+pypiwin32 = {version = "*", os_name = "=='nt'"}
 
 [packages]
 click = "*"

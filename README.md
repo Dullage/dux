@@ -49,13 +49,12 @@ Usage: dux [OPTIONS] INPUT
 
   duplicacy -log list -r 45 -files | dux -
 
-  duplicacy -log list -r 45 -files | my_files.txt
-  dux my_files.txt
+  duplicacy -log list -r 45 -files > my_files.txt && dux my_files.txt
 
 Options:
-  --output FILENAME  Output file. Defaults to 'dux_<timestamp>.json'
-  --indent INTEGER   Number of spaces used to format JSON output. Defaults to
-                     None (unformatted).
+  -o, --output FILENAME  Output file. Defaults to 'dux_<timestamp>.json'
+  --indent INTEGER       Number of spaces used to format JSON output. Defaults
+                         to None (unformatted).
 
-  --help             Show this message and exit.
+  --help                 Show this message and exit.
 ```

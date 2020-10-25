@@ -92,6 +92,7 @@ def main(input, output, indent=None):
 @click.command(help=cli_help_text)
 @click.argument("input", type=click.File(), required=True)
 @click.option(
+    "-o",
     "--output",
     type=click.File(mode="w"),
     default=default_output_filename(),

@@ -10,6 +10,7 @@ isort = "*"
 flake8 = "*"
 pyinstaller = "*"
 pypiwin32 = {version = "*", os_name = "=='nt'"}
+pywin32-ctypes = {version = "*", os_name = "=='nt'"}
 
 [packages]
 click = "*"

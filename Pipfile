@@ -14,6 +14,7 @@ pywin32-ctypes = {version = "*", os_name = "=='nt'"}
 
 [packages]
 click = "*"
+humanize = "*"
 
 [requires]
 python_version = "3.8"

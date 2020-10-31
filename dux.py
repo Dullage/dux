@@ -1,20 +1,26 @@
 import json
+import random
 from datetime import datetime
 
 import click
 
+from file import File
+
 cli_help_text = """
-Convert the output of the duplicacy list command to JSON.
+A tool to augment the output of the duplicacy list command.
 
 The output of the duplicacy list command can either be piped directly into dux
-or into a file which can then be loaded by dux. Note: The "-log" and "-files"
-options must be used in the duplicacy command.
+or into a file which can then be loaded by dux.
+
+Note: The "-log" and "-files" options must be used in the duplicacy command.
 
 Examples:
 
-duplicacy -log list -r 45 -files | dux -
+$ duplicacy -log list -r 45 -files | dux -
 
-duplicacy -log list -r 45 -files > my_files.txt && dux my_files.txt
+\b
+$ duplicacy -log list -r 45 -files > my_files.txt
+$ dux my_files.txt
 """
 
 
@@ -58,10 +64,11 @@ def default_output_filename():
     return f"dux_{timestamp}.json"
 
 
-def main(input, output, indent=None):
-    files = {}
-
-    with click.progressbar(input.readlines()) as input_:
+def extract_files(input):
+    files = []
+    with click.progressbar(
+        input.readlines(), label="Extracting Files"
+    ) as input_:
         for line in input_:
             line_parts = line.strip().split(maxsplit=8)
             # 0 = Log Date
@@ -77,19 +84,22 @@ def main(input, output, indent=None):
             try:
                 log_type = line_parts[3]
                 if log_type == "SNAPSHOT_FILE":
-                    file_size = int(line_parts[4])
-                    file_path_idx = 8 if file_size > 0 else 7
-                    file_path = line_parts[file_path_idx].split("/")
-                    file_name = file_path.pop(-1)
-
-                    add_file(files, file_path, file_name, file_size)
+                    size = int(line_parts[4])
+                    path_idx = 8 if size > 0 else 7
+                    path = line_parts[path_idx]
+                    files.append(File(path, size))
             except IndexError:
                 pass  # Line not in the correct format
+    return files
 
-    output.write(json.dumps(files, indent=indent))
+
+@click.group(help=cli_help_text)
+def cli():
+    pass
 
 
-@click.command(help=cli_help_text)
+# export-json command
+@click.command(help="Export the file list to JSON.")
 @click.argument("input", type=click.File(), required=True)
 @click.option(
     "-o",
@@ -104,8 +114,68 @@ def main(input, output, indent=None):
     default=None,
     help="Number of spaces used to format JSON output. Defaults to None (unformatted).",  # noqa
 )
-def cli(input, output, indent):
-    main(input, output, indent)
+def export_json(input, output, indent):
+    file_list = extract_files(input)
+    files = {}
+    with click.progressbar(
+        file_list, label="Exporting to JSON"
+    ) as input_files_:
+        for file in input_files_:
+            add_file(files, file.directory_list, file.name, file.size)
+    output.write(json.dumps(files, indent=indent))
+
+
+# select-random command
+@click.command(help="Select random files (useful for backup testing).")
+@click.argument("input", type=click.File(), required=True)
+@click.option(
+    "--num-files",
+    type=int,
+    default=1,
+    help="Number of random files to find.",
+    show_default=True,
+)
+@click.option(
+    "--min-size", type=int, help="Minimum size of random file in bytes."
+)
+@click.option(
+    "--max-size", type=int, help="Maximum size of random file in bytes."
+)
+@click.option(
+    "-x",
+    "--exclude-extension",
+    type=str,
+    multiple=True,
+    help="Exclude files from the random choice based on their extension. Multiple values allowed e.g. -x .txt -x .bak",  # noqa
+)
+def select_random(
+    input,
+    num_files,
+    min_size,
+    max_size,
+    exclude_extension,
+):
+    file_list = extract_files(input)
+    random.shuffle(file_list)
+    chosen = []
+    while len(chosen) < num_files and len(file_list) > 0:
+        candidate = file_list.pop()
+        if (
+            candidate.extension not in exclude_extension
+            and (min_size is None or candidate.size >= min_size)
+            and (max_size is None or candidate.size <= max_size)
+        ):
+            chosen.append(candidate)
+
+    for file in chosen:
+        click.echo(f"- File: {file.path}")
+        click.echo(f"  Size: {file.friendly_size}")
+    if len(chosen) != num_files:
+        click.echo("Unable to find enough matching files!")
+
+
+cli.add_command(export_json)
+cli.add_command(select_random)
 
 
 if __name__ == "__main__":

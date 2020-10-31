@@ -1,7 +1,36 @@
 # dux
 
-## Overview
+A tool to augment the output of the `duplicacy list -files` command.
 
+## Usage
+
+```
+Usage: dux [OPTIONS] COMMAND [ARGS]...
+
+  A tool to augment the output of the duplicacy list command.
+
+  The output of the duplicacy list command can either be piped directly into
+  dux or into a file which can then be loaded by dux.
+
+  Note: The "-log" and "-files" options must be used in the duplicacy
+  command.
+
+  Examples:
+
+  $ duplicacy -log list -r 45 -files | dux -
+
+  $ duplicacy -log list -r 45 -files > my_files.txt
+  $ dux my_files.txt
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  export-json    Export the file list to JSON.
+  select-random  Select random files (useful for backup testing).
+```
+
+## export-json
 Turns the output of the `duplicacy list -files` command:
 
 ```log
@@ -23,33 +52,10 @@ Into JSON:
 }
 ```
 
-The output can then easily be explored using tools such as [fx](https://github.com/antonmedv/fx) or even in Firefox which has a decent inbuilt JSON browser.
-
-## Installation
-
-There's a number of options:
-
-1. Download a prebuilt binary from the release page.
-2. Clone this repo and run as a python script.
-3. Clone this repo and use [pyinstaller](https://www.pyinstaller.org/) to build your own binary: `pyinstaller --onefile /path/to/dux.py`
-
-
-## Usage
-
 ```
-Usage: dux [OPTIONS] INPUT
+Usage: dux.py export-json [OPTIONS] INPUT
 
-  Convert the output of the duplicacy list command to JSON.
-
-  The output of the duplicacy list command can either be piped directly into
-  dux or into a file which can then be loaded by dux. Note: The "-log" and
-  "-files" options must be used in the duplicacy command.
-
-  Examples:
-
-  duplicacy -log list -r 45 -files | dux -
-
-  duplicacy -log list -r 45 -files > my_files.txt && dux my_files.txt
+  Export the file list to JSON.
 
 Options:
   -o, --output FILENAME  Output file. Defaults to 'dux_<timestamp>.json'
@@ -57,4 +63,26 @@ Options:
                          to None (unformatted).
 
   --help                 Show this message and exit.
+```
+
+The output can then easily be explored using tools such as [fx](https://github.com/antonmedv/fx) or even in Firefox which has a decent inbuilt JSON browser.
+
+# select-random
+
+Select random files (useful for backup testing).
+
+```
+Usage: dux.py select-random [OPTIONS] INPUT
+
+  Select random files (useful for backup testing).
+
+Options:
+  --num-files INTEGER           Number of random files to find.  [default: 1]
+  --min-size INTEGER            Minimum size of random file in bytes.
+  --max-size INTEGER            Maximum size of random file in bytes.
+  -x, --exclude-extension TEXT  Exclude files from the random choice based on
+                                their extension. Multiple values allowed e.g.
+                                -x .txt -x .bak
+
+  --help                        Show this message and exit.
 ```

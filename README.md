@@ -17,10 +17,10 @@ Usage: dux [OPTIONS] COMMAND [ARGS]...
 
   Examples:
 
-  $ duplicacy -log list -r 45 -files | dux -
+  $ duplicacy -log list -r 45 -files | dux export-json -
 
   $ duplicacy -log list -r 45 -files > my_files.txt
-  $ dux my_files.txt
+  $ dux export-json my_files.txt
 
 Options:
   --help  Show this message and exit.

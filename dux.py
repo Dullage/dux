@@ -16,11 +16,11 @@ Note: The "-log" and "-files" options must be used in the duplicacy command.
 
 Examples:
 
-$ duplicacy -log list -r 45 -files | dux -
+$ duplicacy -log list -r 45 -files | dux export-json -
 
 \b
 $ duplicacy -log list -r 45 -files > my_files.txt
-$ dux my_files.txt
+$ dux export-json my_files.txt
 """
 
 
@@ -169,7 +169,7 @@ def select_random(
 
     for file in chosen:
         click.echo(f"- File: {file.path}")
-        click.echo(f"  Size: {file.friendly_size}")
+        click.echo(f"  Size: {file.size} B")
     if len(chosen) != num_files:
         click.echo("Unable to find enough matching files!")
 
